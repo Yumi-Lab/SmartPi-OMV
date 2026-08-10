@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#### SmartPi-OMV — Armbian base setup (SPI, groups, motd, security)
+#### YumiOS-OpenMediaVault — Armbian base setup (SPI, groups, motd, security)
 #### Forked from MainsailOS by Stephan Wendel aka KwadFan
 #### https://github.com/mainsail-crew/MainsailOS
 ####

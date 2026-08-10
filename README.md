@@ -1,4 +1,4 @@
-# SmartPi-OMV
+# YumiOS-OpenMediaVault
 
 Ready-to-flash [OpenMediaVault](https://www.openmediavault.org/) NAS image for the **Yumi SmartPi One** (AllWinner H3), built on top of the [SmartPi-armbian](https://github.com/Yumi-Lab/SmartPi-armbian) Debian 12 (Bookworm) server base with [CustomPiOS](https://github.com/Yumi-Lab/CustomPiOS-Yumi).
 

@@ -1,5 +1,5 @@
 [Unit]
-Description=SmartPi-OMV firstboot — OpenMediaVault installation
+Description=YumiOS-OpenMediaVault firstboot — OpenMediaVault installation
 ConditionPathExists=/.omv_firstboot
 After=armbian-resize-filesystem.service network-online.target
 Wants=network-online.target

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#### SmartPi-OMV — OpenMediaVault (sandworm) preinstall
+#### YumiOS-OpenMediaVault — OpenMediaVault (sandworm) preinstall
 ####
 #### The openmediavault postinst runs omv-salt deploys that need a live
 #### systemd, so the package can NOT be installed inside the build chroot.

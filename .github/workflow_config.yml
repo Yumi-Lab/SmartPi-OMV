@@ -16,11 +16,11 @@
 
 buildtest:
   # armbian based images
-  - armbian/SmartPi-OMV-smartpi1
+  - armbian/YumiOS-OpenMediaVault-smartpi1
 
 # This is used to setup release build chain.
 # Each entry will be used in setup matrix for releases
 
 release:
   # armbian based images
-  - armbian/SmartPi-OMV-smartpi1
+  - armbian/YumiOS-OpenMediaVault-smartpi1

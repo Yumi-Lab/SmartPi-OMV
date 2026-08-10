@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#### SmartPi-OMV — OpenMediaVault firstboot installer
+#### YumiOS-OpenMediaVault — OpenMediaVault firstboot installer
 ####
 #### Runs once, on the device, with a live systemd: installs the
 #### pre-downloaded openmediavault packages, registers the network
