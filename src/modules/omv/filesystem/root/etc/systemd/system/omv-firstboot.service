@@ -1,0 +1,15 @@
+[Unit]
+Description=SmartPi-OMV firstboot — OpenMediaVault installation
+ConditionPathExists=/.omv_firstboot
+After=armbian-resize-filesystem.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/omv-firstboot
+TimeoutStartSec=infinity
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

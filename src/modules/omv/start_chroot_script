@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+#### SmartPi-OMV — OpenMediaVault (sandworm) preinstall
+####
+#### The openmediavault postinst runs omv-salt deploys that need a live
+#### systemd, so the package can NOT be installed inside the build chroot.
+#### The chroot stage only prepares the keyring, the package repository and
+#### pre-downloads every .deb into the image; the real install is done by
+#### omv-firstboot.service on the first boot of the device.
+####
+#### This File is distributed under GPLv3
+####
+
+# shellcheck enable=require-variable-braces
+# Source error handling, leave this in place
+set -Ee
+
+export LC_ALL=C
+export DEBIAN_FRONTEND=noninteractive
+
+# Source CustomPIOS common.sh
+# shellcheck disable=SC1091
+source /common.sh
+install_cleanup_trap
+
+echo_green "Preparing OpenMediaVault (${OMV_CODENAME}) ..."
+
+## Step 1: Install firstboot service + installer script
+unpack /filesystem/root / root
+chmod +x /usr/local/bin/omv-firstboot
+## END
+
+## Step 2: Install dependencies
+apt-get update
+# shellcheck disable=SC2086
+check_install_pkgs ${OMV_DEPS}
+## END
+
+## Step 3: Install the openmediavault archive keyring
+wget --quiet --output-document=- "${OMV_KEY_URL}" \
+    | gpg --dearmor --yes --output "${OMV_KEYRING}"
+## END
+
+## Step 4: Add the package repository
+cat > "${OMV_APT_LIST}" << EOF
+deb [signed-by=${OMV_KEYRING}] ${OMV_REPO_URL} ${OMV_CODENAME} main
+EOF
+## END
+
+## Step 5: Pre-download openmediavault and its full dependency tree into
+## the image so the firstboot install does not need the network.
+## A dedicated cache directory keeps it safe from any 'apt-get clean'.
+mkdir -p "${OMV_PRELOAD_DIR}/partial"
+apt-get update
+# shellcheck disable=SC2086
+apt-get --yes --download-only \
+    --option Dir::Cache::archives="${OMV_PRELOAD_DIR}" \
+    ${OMV_APT_OPTIONS} install openmediavault
+echo_green "Pre-downloaded $(find "${OMV_PRELOAD_DIR}" -maxdepth 1 -name '*.deb' | wc -l) packages"
+## END
+
+## Step 6: Hand the settings over to the firstboot installer
+## (single source of truth: this module's config file)
+cat > /etc/omv-firstboot.conf << EOF
+OMV_PRELOAD_DIR="${OMV_PRELOAD_DIR}"
+OMV_APT_OPTIONS="${OMV_APT_OPTIONS}"
+EOF
+## END
+
+## Step 7: Arm the firstboot service
+systemctl_if_exists enable omv-firstboot.service
+touch /.omv_firstboot
+## END
+
+## Step 8: A NAS rootfs should use the whole SD card — re-enable the
+## Armbian expansion service disabled by armbian_net.
+## omv-firstboot.service orders itself after it.
+systemctl_if_exists enable armbian-resize-filesystem.service
+## END
+
+echo_green "Preparing OpenMediaVault (${OMV_CODENAME}) ... [DONE]"

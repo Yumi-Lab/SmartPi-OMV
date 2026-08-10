@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+#### SmartPi-OMV — OpenMediaVault firstboot installer
+####
+#### Runs once, on the device, with a live systemd: installs the
+#### pre-downloaded openmediavault packages, registers the network
+#### interfaces in the OMV database and hands the network over to
+#### systemd-networkd, then reboots into the ready system.
+####
+#### This File is distributed under GPLv3
+####
+
+set -e
+
+LOG="/var/log/omv-firstboot.log"
+FLAG="/.omv_firstboot"
+# The 'new object' UUID understood by omv-confdbadm
+OMV_NEW_UUID="fa4b1c66-ef79-11e5-87a0-0002b3a176b4"
+
+exec > >(tee -a "${LOG}") 2>&1
+
+# Settings written at build time by the omv module (preload dir, apt options)
+# shellcheck disable=SC1091
+[ -f /etc/omv-firstboot.conf ] && . /etc/omv-firstboot.conf
+
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+export DEBIAN_FRONTEND=noninteractive
+export APT_LISTCHANGES_FRONTEND=none
+
+echo "[omv-firstboot] $(date -Is) OpenMediaVault installation starting"
+echo "[omv-firstboot] this can take 15-30 minutes — do NOT power off"
+
+## Step 1: Make sure apt can resolve (lists are baked into the image;
+## refresh them only if they are missing, which needs the network)
+if ! find /var/lib/apt/lists -maxdepth 1 -name '*openmediavault*Packages*' 2> /dev/null | grep -q .; then
+    echo "[omv-firstboot] apt lists missing — running apt-get update"
+    apt-get update
+fi
+## END
+
+## Step 2: Install openmediavault from the pre-downloaded package cache
+# shellcheck disable=SC2086
+apt-get --yes \
+    --option Dir::Cache::archives="${OMV_PRELOAD_DIR:-/var/cache/apt/archives}" \
+    ${OMV_APT_OPTIONS} install openmediavault
+## END
+
+## Step 3: Populate the configuration database
+omv-confdbadm populate
+## END
+
+## Step 4: Register the physical NICs with DHCP in the OMV database
+for nic_path in /sys/class/net/*; do
+    nic="$(basename "${nic_path}")"
+    case "${nic}" in
+        lo | dummy* | bond* | docker* | veth* | virbr* | wlan*) continue ;;
+    esac
+    if omv-confdbadm read conf.system.network.interface \
+        | jq -e --arg nic "${nic}" '.[] | select(.devicename == $nic)' > /dev/null; then
+        echo "[omv-firstboot] ${nic} already registered"
+        continue
+    fi
+    echo "[omv-firstboot] registering ${nic} (DHCP)"
+    omv-confdbadm read --defaults conf.system.network.interface \
+        | jq --compact-output --arg uuid "${OMV_NEW_UUID}" --arg nic "${nic}" \
+            '.uuid = $uuid | .devicename = $nic | .method = "dhcp" | .method6 = "dhcp"' \
+        | omv-confdbadm update conf.system.network.interface -
+done
+## END
+
+## Step 5: Hand the network over to systemd-networkd
+## (same approach as the OpenMediaVault install script for SBCs)
+rm -f /etc/systemd/network/99-default.link
+rm -f /etc/netplan/armbian-default.yaml
+systemctl unmask systemd-networkd.service 2> /dev/null || true
+omv-salt deploy run systemd-networkd
+systemctl disable NetworkManager.service 2> /dev/null || true
+systemctl disable network-configurator.service 2> /dev/null || true
+## END
+
+## Step 6: Free the space used by the package cache
+rm -rf "${OMV_PRELOAD_DIR:-/var/cache/omv-preload}"
+apt-get clean
+## END
+
+## Step 7: Disarm this service and reboot into the ready system
+systemctl disable omv-firstboot.service
+rm -f "${FLAG}"
+echo "[omv-firstboot] $(date -Is) done — rebooting"
+reboot
+## END
+
+exit 0

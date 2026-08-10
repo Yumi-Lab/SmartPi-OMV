@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Shebang for better file detection
+# shellcheck enable=require-variable-braces
+# shellcheck disable=SC2034
+
+# Base image: SmartPi One — Armbian Bookworm (Debian 12) server — clean base
+# OpenMediaVault 7 (sandworm) requires Debian 12.
+DOWNLOAD_URL_CHECKSUM="https://github.com/Yumi-Lab/SmartPi-armbian/releases/download/v1.7.0/Yumi-smartpi1-bookworm-debian12-server-2026-04-23-0753.img.xz.sha256"
+DOWNLOAD_URL_IMAGE="https://github.com/Yumi-Lab/SmartPi-armbian/releases/download/v1.7.0/Yumi-smartpi1-bookworm-debian12-server-2026-04-23-0753.img.xz"
+
+# Room for the pre-downloaded OpenMediaVault package cache in the chroot,
+# and enough free space left in the final image for the firstboot install.
+BASE_IMAGE_ENLARGEROOT=4000
+BASE_IMAGE_RESIZEROOT=2600
+
+MODULES="base(udev_fix,armbian(armbian_net,omv))"
+
+# SmartPi One — AllWinner H3 — ARMv7 32-bit
+BASE_ARCH="armhf"
+BASE_SBC="smartpi1"
+BASE_OS_CODENAME="bookworm"
+BASE_OS_VERSION="debian12"
+
+# export Variables
+export BASE_ARCH
+export BASE_SBC
+export BASE_OS_CODENAME
+export BASE_OS_VERSION
+export DOWNLOAD_URL_CHECKSUM
+export DOWNLOAD_URL_IMAGE

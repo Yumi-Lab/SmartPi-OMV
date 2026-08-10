@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Shebang for better file detection
+#### SmartPi-OMV — OpenMediaVault module
+####
+#### This File is distributed under GPLv3
+####
+
+# shellcheck disable=all
+
+# Single source for every OpenMediaVault value used by the chroot script
+# and (through /etc/omv-firstboot.conf) by the firstboot installer.
+[[ -n "${OMV_CODENAME}" ]] || OMV_CODENAME="sandworm"
+[[ -n "${OMV_KEY_URL}" ]] || OMV_KEY_URL="https://packages.openmediavault.org/public/archive.key"
+[[ -n "${OMV_KEYRING}" ]] || OMV_KEYRING="/usr/share/keyrings/openmediavault-archive-keyring.gpg"
+[[ -n "${OMV_REPO_URL}" ]] || OMV_REPO_URL="https://packages.openmediavault.org/public"
+[[ -n "${OMV_APT_LIST}" ]] || OMV_APT_LIST="/etc/apt/sources.list.d/openmediavault.list"
+[[ -n "${OMV_PRELOAD_DIR}" ]] || OMV_PRELOAD_DIR="/var/cache/omv-preload"
+[[ -n "${OMV_DEPS}" ]] || OMV_DEPS="gnupg wget jq"
+# Same resolver options as the official OpenMediaVault install documentation.
+# Used for the chroot pre-download AND the firstboot install — never let the
+# two resolve a different package set.
+[[ -n "${OMV_APT_OPTIONS}" ]] || OMV_APT_OPTIONS="--auto-remove --show-upgraded --allow-downgrades --allow-change-held-packages --no-install-recommends --option DPkg::Options::=--force-confdef --option DPkg::Options::=--force-confold"
