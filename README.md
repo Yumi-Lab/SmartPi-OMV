@@ -47,6 +47,11 @@ SmartPi-armbian base image (Debian 12 server)
 
 The `openmediavault` package cannot be installed inside a build chroot: its postinst deploys SaltStack states that need a live systemd. The chroot stage therefore only stages everything, and `omv-firstboot` performs the actual install on the device — identical to the wiki procedure, just unattended.
 
+## Status
+
+- **Validated in CI**: image builds green; e2fsck clean; smoke test verifies the sandworm repository, the dearmored keyring, 143 pre-downloaded `.deb` (including `openmediavault_*.deb`), baked-in apt lists and the armed `omv-firstboot.service`.
+- **Not yet validated**: the first boot procedure on real hardware (install from cache, NIC registration, systemd-networkd handover). Test on a device before publishing a release.
+
 ## Development
 
 ```bash
