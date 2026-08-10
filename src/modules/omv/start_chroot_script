@@ -35,9 +35,10 @@ apt-get update
 check_install_pkgs ${OMV_DEPS}
 ## END
 
-## Step 3: Install the openmediavault archive keyring
-wget --quiet --output-document=- "${OMV_KEY_URL}" \
-    | gpg --dearmor --yes --output "${OMV_KEYRING}"
+## Step 3: Install the openmediavault archive keyring from the vendored
+## copy (unpacked in Step 1) — checked against its pinned checksum.
+echo "${OMV_KEY_SHA256}  ${OMV_KEY_ASC}" | sha256sum -c -
+gpg --dearmor --yes --output "${OMV_KEYRING}" "${OMV_KEY_ASC}"
 ## END
 
 ## Step 4: Add the package repository

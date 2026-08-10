@@ -10,12 +10,16 @@
 # Single source for every OpenMediaVault value used by the chroot script
 # and (through /etc/omv-firstboot.conf) by the firstboot installer.
 [[ -n "${OMV_CODENAME}" ]] || OMV_CODENAME="sandworm"
-[[ -n "${OMV_KEY_URL}" ]] || OMV_KEY_URL="https://packages.openmediavault.org/public/archive.key"
+# Vendored copy of https://packages.openmediavault.org/public/archive.key
+# (unchanged upstream since 2018). Downloading it in the chroot is unreliable:
+# the CDN can answer a challenge page and gpg then sees no OpenPGP data.
+[[ -n "${OMV_KEY_ASC}" ]] || OMV_KEY_ASC="/usr/share/keyrings/openmediavault-archive-keyring.asc"
+[[ -n "${OMV_KEY_SHA256}" ]] || OMV_KEY_SHA256="ffa18c6c27dccd41656b6a71ca2ba042c3028077cb099dbca05fd1fd245906a3"
 [[ -n "${OMV_KEYRING}" ]] || OMV_KEYRING="/usr/share/keyrings/openmediavault-archive-keyring.gpg"
 [[ -n "${OMV_REPO_URL}" ]] || OMV_REPO_URL="https://packages.openmediavault.org/public"
 [[ -n "${OMV_APT_LIST}" ]] || OMV_APT_LIST="/etc/apt/sources.list.d/openmediavault.list"
 [[ -n "${OMV_PRELOAD_DIR}" ]] || OMV_PRELOAD_DIR="/var/cache/omv-preload"
-[[ -n "${OMV_DEPS}" ]] || OMV_DEPS="gnupg wget jq"
+[[ -n "${OMV_DEPS}" ]] || OMV_DEPS="gnupg jq"
 # Same resolver options as the official OpenMediaVault install documentation.
 # Used for the chroot pre-download AND the firstboot install — never let the
 # two resolve a different package set.
